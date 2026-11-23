@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+learned_presets.json
+data/
+*.wav
+!masterengine/static/*
+.ipynb_checkpoints/
+.venv/

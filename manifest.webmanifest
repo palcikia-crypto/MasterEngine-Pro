@@ -1,0 +1,20 @@
+{
+  "name": "MasterEngine — AI Mastering",
+  "short_name": "MasterEngine",
+  "description": "Автоматический ML-мастеринг аудио прямо в браузере: EQ, многополосный компрессор, сатурация, эксайтер, де-эссер, лимитер, стерео-расширение и мастеринг по дорожкам (stems).",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07090f",
+  "theme_color": "#07090f",
+  "categories": ["music", "audio", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
