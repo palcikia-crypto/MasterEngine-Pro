@@ -405,6 +405,11 @@
         for (let i = 0; i < s.n; i++) { mix.L[i] += yF.L[i]; mix.R[i] += yF.R[i]; }
       }
     }
+    // сводим стем-микс: нормализуем громкость и гарантируем true-peak (сумма стемов по −1 dBTP может клиповать)
+    const mixLn = E.lufsGated(mix, sr);
+    const gn = db2lin(clip(-14 - mixLn, -12, 12));
+    for (let i = 0; i < mix.n; i++) { mix.L[i] *= gn; mix.R[i] *= gn; }
+    E.limitTo(mix, sr, -1);
     return { stems: out, mixLufs, mix };
   }
 
