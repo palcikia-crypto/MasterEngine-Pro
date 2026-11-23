@@ -1,5 +1,5 @@
 /* MasterEngine service worker — offline + instant loads + auto-updates. */
-const VERSION = "me-v4";
+const VERSION = "me-v5";
 const BASE = new URL("./", self.location.href);
 const ASSETS = [
   "./",
@@ -7,10 +7,9 @@ const ASSETS = [
   "app.js",
   "engine-worker.js",
   "js-engine.js",
+  "engine-v2.js",
+  "icon.svg",
   "manifest.webmanifest",
-  "icon-192.png",
-  "icon-512.png",
-  "apple-touch-icon.png",
 ].map((a) => new URL(a, BASE).href);
 
 self.addEventListener("install", (e) => {
@@ -51,3 +50,4 @@ self.addEventListener("fetch", (e) => {
     return new Response("MasterEngine: offline and not cached", { status: 503, statusText: "Offline" });
   })());
 });
+

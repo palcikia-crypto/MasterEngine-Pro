@@ -281,8 +281,14 @@
     const glassBefore = glassExcess(featsIn);
     const widthBefore = featsIn.stereo_width_db;
 
-    let p = E.predict(featsIn, sr);
-    applyProfileToParams(p, prof);
+    const hasUser = !!opts.params;
+    let p = hasUser ? E.sanitize(JSON.parse(JSON.stringify(opts.params))) : E.predict(featsIn, sr);
+    if (hasUser) {
+      p._user = true;
+      if (prof.lufs != null) p.target_lufs = prof.lufs;
+    } else {
+      applyProfileToParams(p, prof);
+    }
     const profKee = prof;
     const preDb = clip(-18 - featsIn.lufs, -20, 20);
     const g0 = db2lin(preDb);
@@ -298,7 +304,7 @@
       if (!best || L < best.L) best = { L, y, ft, p: JSON.parse(JSON.stringify(p)) };
       if (it < iters - 1) {
         p = E.refineStep(JSON.parse(JSON.stringify(p)), ft);
-        applyProfileToParams(p, profKee);
+        if (!hasUser) applyProfileToParams(p, profKee);
       }
       await new Promise(r => setTimeout(r, 0));
     }

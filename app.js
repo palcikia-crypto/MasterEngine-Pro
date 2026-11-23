@@ -53,6 +53,11 @@ drop.ondragleave = () => drop.classList.remove("on");
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove("on"); if (ready && e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); };
 $("#file").onchange = e => { if (e.target.files[0]) load(e.target.files[0]); };
 
+// v2: профиль звука и сила обработки
+const profileEl = $("#profile"), intensityEl = $("#intensity");
+if (intensityEl) intensityEl.oninput = () => { const v = $("#intensityVal"); if (v) v.textContent = intensityEl.value + "%"; };
+const readProfile = () => ({ profile: profileEl ? profileEl.value : "auto", intensity: intensityEl ? parseInt(intensityEl.value, 10) / 100 : 1 });
+
 async function load(file) {
   if (!ready) return;
   try {
@@ -76,8 +81,9 @@ async function load(file) {
     const stemsTooLong = stems && ab.duration > 150;
     if (stemsTooLong) { stems = false; $("#stemsOn").checked = false; }
     const iters = nSamples > 44100 * 90 ? 4 : 6;
-    status("Мастерю «" + file.name + "» " + Math.round(ab.duration) + "s — страница живая, работаю в фоне" + (stemsTooLong ? " (дорожки отключил: трек длинный, не влезет в память телефона)" : "") + "…", false, false, 8);
-    worker.postMessage({ t: "load", buf: interleaved.buffer, n: nSamples, sr, stems, iters }, [interleaved.buffer]);
+    const pf = readProfile();
+    status("Мастерю «" + file.name + "» " + Math.round(ab.duration) + "s · профиль: " + pf.profile + (stemsTooLong ? " (дорожки отключил: трек длинный, не влезет в память телефона)" : "") + "…", false, false, 8);
+    worker.postMessage({ t: "load", buf: interleaved.buffer, n: nSamples, sr, stems, iters, profile: pf.profile, intensity: pf.intensity }, [interleaved.buffer]);
     const w = setInterval(() => {
       if (beat !== myBeat) { clearInterval(w); return; }
       const v = parseFloat($("#pbarfill").style.width) || 12;
@@ -114,6 +120,14 @@ function show() {
   drawWave(blobs["/session/original.wav"], false);
   drawWave(blobs["/session/mastered.wav"], true);
   buildParams(lastRes.params);
+  const notes = lastRes.v2 && lastRes.v2.notes;
+  const vc = $("#v2card");
+  if (vc) {
+    if (notes && notes.length) {
+      vc.style.display = "block";
+      $("#v2notes").innerHTML = notes.map(n => "<li>" + n + "</li>").join("");
+    } else vc.style.display = "none";
+  }
   drawStems();
   downloads();
   setTimeout(spectrum, 100);
@@ -148,7 +162,7 @@ $("#rerun").onclick = () => {
   if (!audioData) return;
   status("Пересчитываю с твоими настройками…", false, false, 10);
   const snd = audioData.copy.slice(0, 2 * nSamples);
-  worker.postMessage({ t: "load", buf: snd.buffer, n: nSamples, sr, stems: false, iters: 5, params: lastRes ? lastRes.params : null }, [snd.buffer]);
+  worker.postMessage({ t: "load", buf: snd.buffer, n: nSamples, sr, stems: false, iters: 5, profile: readProfile().profile, intensity: readProfile().intensity, params: lastRes ? lastRes.params : null }, [snd.buffer]);
 };
 
 $("#ab").onclick = () => {
@@ -166,12 +180,18 @@ function drawStems() {
   L.innerHTML = "";
   for (const [k, v] of Object.entries(lastRes.stems)) {
     const d = document.createElement("div"); d.className = "stem";
+    let diag = "";
+    const dg = v.diag;
+    if (dg) {
+      const fixes = (dg.fixes || []).map(f => "· " + f).join(" ");
+      diag = `<small style="display:block;margin-top:6px;color:var(--dim)">Роль: <b style="color:var(--txt)">${dg.sub || dg.role}</b>${dg.note ? " · " + dg.note : ""} · относительно микса ${dg.rel_lufs > 0 ? "+" : ""}${dg.rel_lufs} dB${fixes ? ` · <span style="color:var(--acc2)">${fixes}</span>` : ""}</small>`;
+    }
     d.innerHTML = `<h3>${N2RU[k] || k}</h3>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
         <div class="pl"><h4><span>Сырой стем</span></h4><audio controls src="${blobOf("/session/stem_" + k + ".wav")}"></audio></div>
         <div class="pl"><h4><span>Мастер</span></h4><audio controls src="${blobOf("/session/stemm_" + k + ".wav")}"></audio></div>
       </div>
-      <small>LUFS ${v.before.lufs.toFixed(1)} → <b class="good">${v.after.lufs.toFixed(1)}</b> · TP ${v.before.peak_dbtp.toFixed(1)} → ${v.after.peak_dbtp.toFixed(1)} dBTP</small>`;
+      <small>LUFS ${v.before.lufs.toFixed(1)} → <b class="good">${v.after.lufs.toFixed(1)}</b> · TP ${v.before.peak_dbtp.toFixed(1)} → ${v.after.peak_dbtp.toFixed(1)} dBTP</small>` + diag;
     L.appendChild(d);
   }
 }
@@ -278,3 +298,4 @@ async function spectrum() {
     }
   } catch (e) { /* спектр — косметика */ }
 }
+

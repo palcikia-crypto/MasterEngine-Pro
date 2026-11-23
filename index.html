@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MasterEngine">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>MasterEngine — AI Mastering</title>
 <style>
 *{box-sizing:border-box}
@@ -122,6 +122,7 @@ footer a{color:var(--dim)}
     <span class="badge"><b>ML</b> авто-мастеринг</span>
     <span class="badge"><b>A ⇄ B</b> слушание</span>
     <span class="badge"><b>Stems</b> по дорожкам</span>
+    <span class="badge"><b>v2</b> профили звука</span>
     <span class="badge"><b>100%</b> локально в браузере</span>
   </div>
   <p class="sub">Загрузи трек — движок сам подберёт цепочку обработки (EQ, мультибенд, сатурация, эксайтер, лимитер) и сойдётся к целевым метрикам. Жми A ⇄ B и слушай разницу в наушниках. Файлы никуда не отправляются.</p>
@@ -134,7 +135,22 @@ footer a{color:var(--dim)}
     <div class="t2" id="dropSub">или кликни для выбора файла</div>
     <input type="file" id="file" hidden accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg">
   </div>
-  <label class="chk"><input type="checkbox" id="stemsOn" disabled> Разбить на дорожки и смастерить каждую отдельно <span style="opacity:.6">(медленнее)</span></label>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:16px;justify-content:center">
+    <label style="display:flex;gap:8px;align-items:center;color:var(--dim);font-size:13px">Профиль звука:
+      <select id="profile" style="background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13.5px">
+        <option value="auto" selected>Авто (универсально)</option>
+        <option value="suno">Suno — живой вокал</option>
+        <option value="warm">Тёплый / винтаж</option>
+        <option value="bright">Яркий / воздушный</option>
+        <option value="club">Клуб / плотный</option>
+      </select>
+    </label>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--dim);font-size:13px;min-width:270px;flex:1">Сила обработки
+      <input type="range" id="intensity" min="30" max="150" value="100" style="flex:1;accent-color:var(--acc)">
+      <span id="intensityVal" style="min-width:44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--txt)">100%</span>
+    </label>
+  </div>
+  <label class="chk"><input type="checkbox" id="stemsOn" disabled> Разбить на дорожки и смастерить каждую отдельно (v2 сам определит инструмент и подтянет тихие) <span style="opacity:.6">(медленнее)</span></label>
   <div id="statusbar"><div class="spin" id="spin"></div><div id="status">Инициализация движка…</div></div>
   <div id="pbar" style="margin-top:10px;height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden"><div id="pbarfill" style="height:100%;width:6%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s"></div></div>
 </div>
@@ -168,6 +184,11 @@ footer a{color:var(--dim)}
   <canvas id="spec" width="1000" height="220"></canvas>
 </div>
 
+<div class="card" id="v2card" style="display:none">
+  <h3><span class="n">v2</span> Что сделал профиль звука</h3>
+  <ul id="v2notes" style="margin:0;padding-left:20px;font-size:14px"></ul>
+</div>
+
 <div class="card" id="stemsCard" style="display:none">
   <h3><span class="n">5</span> Мастеринг по дорожкам</h3>
   <div id="stemsList"></div>
@@ -178,9 +199,10 @@ footer a{color:var(--dim)}
   <div id="dls"></div>
 </div>
 
-<footer>MasterEngine · автоматический ML-мастеринг · работает локально в твоём браузере</footer>
+<footer>MasterEngine Pro (v2) · профили звука, анти-«стекло», per-stem авто-гейн · работает локально в твоём браузере</footer>
 </div>
 </div>
 <script src="app.js"></script>
 </body>
 </html>
+
